@@ -1,0 +1,16 @@
+
+Ship logs to a syslog server
+----------------------------
+
+Usage: bin/syslog-shipper [options] -s HOST:PORT <path_or_glob> [path_or_glob2] [...]
+  If a path begins with '+' each line is sent unmodified to the syslog server.
+  Otherwise, this tool will prefix each line read from the file with a syslog
+  header. 
+
+  For example: syslog-shipper -s somehost:514 +/var/log/messages /var/log/apache2/access.log
+
+---
+
+Installation:
+  - gem install syslog-shipper
+  - 
