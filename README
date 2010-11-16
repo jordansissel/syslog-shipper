@@ -13,4 +13,8 @@ Usage: bin/syslog-shipper [options] -s HOST:PORT <path_or_glob> [path_or_glob2] 
 
 Installation:
   - gem install syslog-shipper
-  - 
+
+Running:
+  Installing with gem (as above) should add 'syslog-shipper' to your path. If
+  not, check the output of 'gem env' and look for the path listed on the line
+  with 'EXECUTABLE DIRECTORY'
