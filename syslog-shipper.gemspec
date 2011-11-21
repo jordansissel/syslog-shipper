@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency("eventmachine-tail")
   spec.files = files
   spec.bindir = "bin"
-  spec.executables << "syslog-server"
+  spec.executables << "syslog-shipper"
 
   spec.author = "Jordan Sissel"
   spec.email = "jordan@loggly.com"
