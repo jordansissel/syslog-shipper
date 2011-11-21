@@ -1,4 +1,3 @@
-
 Ship logs to a syslog server
 ----------------------------
 
@@ -8,13 +7,3 @@ Usage: bin/syslog-shipper [options] -s HOST:PORT <path_or_glob> [path_or_glob2] 
   header. 
 
   For example: syslog-shipper -s somehost:514 +/var/log/messages /var/log/apache2/access.log
-
----
-
-Installation:
-  - gem install syslog-shipper
-
-Running:
-  Installing with gem (as above) should add 'syslog-shipper' to your path. If
-  not, check the output of 'gem env' and look for the path listed on the line
-  with 'EXECUTABLE DIRECTORY'
