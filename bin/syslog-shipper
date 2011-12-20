@@ -1,41 +1,36 @@
 #!/usr/bin/env ruby
+
+# http://andyjeffries.co.uk/articles/x509-encrypted-authenticated-socket-ruby-client
+# require 'socket'
+# require 'openssl'
+# 
+# socket = TCPSocket.new('my.secure.service', 443)
+# socket.puts("GET / HTTP/1.0")
+# socket.puts("")
+# 
+# while line = socket.gets
+#   p line
+# end
+
+# 
+# socket = TCPSocket.new('my.secure.service', 443)
+# ssl_context = OpenSSL::SSL::SSLContext.new()
+# ssl_socket = OpenSSL::SSL::SSLSocket.new(socket, ssl_context)
+# ssl_socket.sync_close = true
+# ssl_socket.connect
+# 
+# ssl_socket.puts("GET / HTTP/1.0")
+# ssl_socket.puts("")
+# 
+# while line = ssl_socket.gets
+#   p line
+# end
+
+#!/usr/bin/env ruby
+
 require "rubygems"
-require "eventmachine"
-require "eventmachine-tail"
-require "socket"
 require "optparse"
-
-class Shipper < EventMachine::FileTail
-  def initialize(path, startpos=-1, connection=nil, raw=false, verbose=false)
-    super(path, startpos)
-    @buffer = BufferedTokenizer.new
-    @hostname = Socket.gethostname
-    @connection = connection
-    @raw = raw
-    @verbose = verbose
-  end
-
-  def receive_data(data)
-    @buffer.extract(data).each do |line|
-      if @raw
-        @connection.send_data("#{line}\n")
-        puts line if @verbose
-      else
-        timestamp = Time.now.strftime("%b %d %H:%M:%S")
-        syslogline = "#{timestamp} #{@hostname} #{path}: #{line}\n"
-        print syslogline if @verbose
-        @connection.send_data(syslogline)
-      end
-    end # buffer extract
-  end # def receive_data
-end # class Shipper
-
-def pattern_to_regexp(pattern)
-  pattern.gsub!(".", "\\.") # fix literal .
-  pattern.gsub!("*", ".+")  # * becomes .+
-  pattern.gsub!("?", ".")   # ? becomes .
-  return Regexp.new(pattern)
-end # def pattern_to_regexp
+require File.expand_path('../../lib/syslog_shipper',  __FILE__)
 
 def main(args)
   globcheck_interval = 5
@@ -102,7 +97,7 @@ def main(args)
       else
         raw = false
       end
-      EventMachine::FileGlobWatchTail.new(path, Shipper,
+      EventMachine::FileGlobWatchTail.new(path, Client,
                                           interval = globcheck_interval,
                                           exclude = exclude_patterns,
                                           start_pos = -1,
@@ -115,3 +110,12 @@ def main(args)
 end # def main
 
 exit(main(ARGV))
+
+private 
+
+def pattern_to_regexp(pattern)
+  pattern.gsub!(".", "\\.") # fix literal .
+  pattern.gsub!("*", ".+")  # * becomes .+
+  pattern.gsub!("?", ".")   # ? becomes .
+  return Regexp.new(pattern)
+end # def pattern_to_regexp
