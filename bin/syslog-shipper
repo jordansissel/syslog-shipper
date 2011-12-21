@@ -26,8 +26,6 @@
 #   p line
 # end
 
-#!/usr/bin/env ruby
-
 require "rubygems"
 require "optparse"
 require File.expand_path('../../lib/syslog_shipper',  __FILE__)
@@ -97,7 +95,7 @@ def main(args)
       else
         raw = false
       end
-      EventMachine::FileGlobWatchTail.new(path, Client,
+      EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = globcheck_interval,
                                           exclude = exclude_patterns,
                                           start_pos = -1,
