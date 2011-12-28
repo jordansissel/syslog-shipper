@@ -9,6 +9,7 @@ def main(args)
   exclude_patterns = []
   hostarg = nil
   verbose = false
+  tls = false
 
   opts = OptionParser.new do |opts|
     opts.banner = [
@@ -43,6 +44,7 @@ def main(args)
 
     opts.on("-c CERT_PATH", "--ca-cert CERT_PATH", "Certificate authority PEM file to use") do |arg|
       SyslogShipper::Client.ca_cert = arg
+      tls = true
     end
   end # OptionParser
 
@@ -64,7 +66,11 @@ def main(args)
     host, port = hostarg.split(":")
     port = 514 if port == nil
 
-    connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
+    connection = if tls 
+      EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
+    else
+      EventMachine::connect(host, port) 
+    end
 
     args.each do |path|
       if path.start_with?("+")
