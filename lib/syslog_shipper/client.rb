@@ -2,6 +2,10 @@ require "socket"
 
 module SyslogShipper
   class Client < EventMachine::FileTail
+    class << self
+      attr_accessor :ca_cert
+    end
+
     def initialize(path, startpos=-1, connection=nil, raw=false, verbose=false)
       super(path, startpos)
       @buffer = BufferedTokenizer.new
@@ -13,16 +17,21 @@ module SyslogShipper
 
     def receive_data(data)
       @buffer.extract(data).each do |line|
-        if @raw
-          @connection.send_data("#{line}\n")
-          puts line if @verbose
+        line = if @raw
+          "#{line}\n"
         else
-          timestamp = Time.now.strftime("%b %d %H:%M:%S")
-          syslogline = "#{timestamp} #{@hostname} #{path}: #{line}\n"
-          print syslogline if @verbose
-          @connection.send_data(syslogline)
+          "#{Time.now.strftime("%b %d %H:%M:%S")} #{@hostname} #{path}: #{line}\n"
         end
-      end # buffer extract
-    end # def receive_data
-  end # class Client
-end # module SyslogShipper
+   
+        print line if @verbose
+        send_data(line)
+      end 
+    end
+
+    private
+
+    def send_data line
+      @connection.send_data line        
+    end
+  end
+end
