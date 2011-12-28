@@ -1,5 +1,13 @@
 require 'spec_helper'
 
-describe Client do
-  it "connects to the remote syslog server over TLS"
+describe SyslogShipper::Client do
+  describe '#receive_data' do
+    before(:each) do
+
+    end
+
+    context "sending data" do
+      it "sends over TLS"
+    end
+  end
 end
