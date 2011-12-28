@@ -42,9 +42,13 @@ def main(args)
       end
     end
 
-    connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
+    connection = if options[:ca_cert]  
+      EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
+    else
+      EventMachine::connect(host, port) 
+    end
 
-    args.each do |path|
+    ARGV.each do |path|
       if path =~ /\A\+/
         raw = true
         path = path[1..-1]
