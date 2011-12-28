@@ -12,7 +12,7 @@ module SyslogShipper::TlsWrapper
   def ssl_verify_peer cert
     ca_cert = OpenSSL::X509::Certificate.new File.read(SyslogShipper::Client.ca_cert)
     server_cert = OpenSSL::X509::Certificate.new cert
-    server_cert.verify ca_cert.public_key
+    raise "Couldn't verify peer" unless server_cert.verify ca_cert.public_key
   end
 
   def ssl_handshake_completed
