@@ -51,9 +51,10 @@ def main(args)
     ARGV.each do |path|
       if path =~ /\A\+/
         raw = true
+        SyslogShipper::Client.verbose = true
         path = path[1..-1]
       else
-        raw = false
+        SyslogShipper::Client.verbose = false
       end
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = options[:check_interval],
