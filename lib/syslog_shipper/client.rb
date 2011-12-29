@@ -4,15 +4,17 @@ module SyslogShipper
   class Client < EventMachine::FileTail
     class << self
       attr_accessor :ca_cert
+      attr_accessor :with_tls
+      attr_accessor :bypass_peer_check
+      attr_accessor :verbose
+      attr_accessor :raw
     end
 
-    def initialize(path, startpos=-1, connection=nil, raw=false, verbose=false)
-      super(path, startpos)
+    def initialize path, startpos=-1, connection=nil
+      super path, startpos
       @buffer = BufferedTokenizer.new
       @hostname = Socket.gethostname
       @connection = connection
-      @raw = raw
-      @verbose = verbose
     end
 
     def receive_data(data)

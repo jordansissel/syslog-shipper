@@ -74,19 +74,16 @@ def main(args)
 
     args.each do |path|
       if path.start_with?("+")
-        raw = true
+        SyslogShipper::Client.verbose = true
         path = path[1..-1]
       else
-        raw = false
+        SyslogShipper::Client.verbose = false
       end
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = globcheck_interval,
                                           exclude = exclude_patterns,
                                           start_pos = -1,
-                                          connection = connection,
-                                          raw = raw,
-                                          verbose = verbose
-                                          )
+                                          connection = connection)
     end # args.each
   end # EventMachine.run
 end # def main
