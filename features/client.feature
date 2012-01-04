@@ -1,4 +1,4 @@
-@aruba
+@aruba @announce
 Feature: Sends log data
   Scenario: When I connect to a valid host
     Given I have a valid endpoint
