@@ -10,12 +10,20 @@ module SyslogShipper::TlsWrapper
   end
 
   def ssl_verify_peer cert
-    return if SyslogShipper::Client.bypass_peer_check
+    return true if SyslogShipper::Client.bypass_peer_check
 
-    ca_cert = OpenSSL::X509::Certificate.new File.read(SyslogShipper::Client.ca_cert)
+    ca_cert = OpenSSL::X509::Certificate.new(File.read(SyslogShipper::Client.ca_cert))
     server_cert = OpenSSL::X509::Certificate.new cert
-    raise OpenSSL::X509::CertificateError("Couldn't verify peer") unless server_cert.verify(ca_cert.public_key)
+    
 
+    unless server_cert.verify(ca_cert.public_key)
+      puts "The server certificate is not recognized, would you still like to connect?"
+      answer = STDIN.gets.chomp
+      unless answer =~ /y|yes/i
+        raise OpenSSL::X509::CertificateError.new("Couldn't verify peer")
+      end
+    end
+    
     puts 'verified peer' if SyslogShipper::Client.verbose
     true
   end
