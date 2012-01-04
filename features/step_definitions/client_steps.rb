@@ -7,31 +7,38 @@ Given /^I have a valid TLS endpoint$/ do
   @port = 12345
   @host_name = 'localhost'
   SyslogShipper::Client.with_tls = true
-  SyslogShipper::Client.ca_cert = File.expand_path(File.dirname(__FILE__) + '../../test_certs/ca.crt')
+  SyslogShipper::Client.ca_cert = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
 end
 
 Given /^I have an invalid TLS endpoint$/ do
   SyslogShipper::Client.with_tls = true
-  @port = 443
-  @host_name = 'mail.google.com'
+  @port = 12345
+  @host_name = 'localhost'
 end
 
 When /^I connect to that endpoint$/ do
   steps %Q{
-    When I run `syslog-shipper --p -s #{@host_name}:#{@port} *` interactively
+    When I run `syslog-shipper --p -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
 When /^I securely connect to that endpoint$/ do
-  file_path = File.expand_path(File.dirname(__FILE__) + '../../test_certs/ca.crt')
+  file_path = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
   steps %Q{
-    When I run `syslog-shipper --p --tls --ca-cert #{file_path} -s #{@host_name}:#{@port} *` interactively
+    When I run `syslog-shipper --p --ca-cert #{file_path} -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
+  }
+end
+
+When /^I connect to the insecure endpoint$/ do
+  file_path = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
+  steps %Q{
+    When I run `syslog-shipper --p --tls -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
 When /^I connect to that endpoint with and bypass peer checking$/ do
   steps %Q{
-    When I run `syslog-shipper --p --skip-peer-check -s #{@host_name}:#{@port} *` interactively
+    When I run `syslog-shipper --p --skip-peer-check -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
@@ -44,6 +51,13 @@ end
 Then /^the connection should fail$/ do
   steps %Q{
     Then the output should contain "connection failed"  
+  }
+end
+
+
+Then /^the connection should succeed$/ do
+  steps %Q{
+    Then the output should contain "connection successful"  
   }
 end
 
