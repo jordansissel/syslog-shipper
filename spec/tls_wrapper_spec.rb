@@ -7,22 +7,26 @@ end
 describe SyslogShipper::TlsWrapper do
 
   let(:subject) {MyTlsModule.new}
+  let(:server_cert) {double}
+  let(:ca_cert) {double}
+
+
+  before(:each) do
+    subject.stub(:read_ca_cert).and_return(ca_cert)
+    ca_cert.stub(:public_key)
+    server_cert.stub(:public_key)
+    OpenSSL::X509::Certificate.stub(:new).and_return(server_cert)
+
+    # reset the class values
+    SyslogShipper::Client.bypass_peer_check = nil 
+    SyslogShipper::Client.ca_cert = nil
+  end
 
   describe "#ssl_verify_peer" do
-    let(:cert) {double}
-
-    before(:each) do
-      SyslogShipper::Client.bypass_peer_check = false # reset the class value
-      File.stub(:read)
-
-
-      cert.stub(:public_key)
-      OpenSSL::X509::Certificate.stub(:new).and_return(cert)
-    end
-
     context 'using a valid CA certificate' do
       before(:each) do
-        cert.stub(:verify).and_return true
+        SyslogShipper::Client.ca_cert = ""
+        server_cert.stub(:verify).and_return true
       end
 
       it 'verifies the peer' do
@@ -32,7 +36,7 @@ describe SyslogShipper::TlsWrapper do
 
     context 'connecting to an unverified peer' do
       before(:each) do
-        cert.stub(:verify).and_return false
+        server_cert.stub(:verify).and_return false
       end
 
       it 'should connect if the bypass peer checking flag is set' do
