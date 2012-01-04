@@ -28,17 +28,20 @@ def main(args)
     opt :tls, "Connect via tls"
   end
 
-  Trollop.die "You must supply files to watch" if ARGV.length ==0
+  Trollop.die "You must supply files to watch" if ARGV.length == 0
   
   host, port = options[:server].split(":")
   port = 514 if port == nil
   exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
 
-  SyslogShipper::Client.ca_cert = options[:ca_cert]    
-  SyslogShipper::Client.with_tls = options[:tls]
+  # debug options
   SyslogShipper::Client.ping = options[:ping]
   SyslogShipper::Client.verbose = options[:verbose]
+
+  # TLS options
+  SyslogShipper::Client.ca_cert = options[:ca_cert]    
   SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
+  SyslogShipper::Client.with_tls = options[:tls] || options[:skip_peer_check] || options[:ca_cert]
 
   EventMachine.run do
     Signal.trap("INT") do
@@ -48,7 +51,7 @@ def main(args)
       end
     end
 
-    connection = if options[:ca_cert]  
+    connection = if options[:tls]  
       EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
     else
       EventMachine::connect(host, port) 
