@@ -39,12 +39,18 @@ def main(args)
     end
 
     opts.on("-v", "--verbose", "verbose (outputs each log line as seen)") do |arg|
-      verbose = true
+      SyslogShipper::Client.verbose = true
     end
+
+    opts.on("--ping", "connect and quit (implies -v)") do |arg|
+      SyslogShipper::Client.verbose = true
+      SyslogShipper::Client.ping = true
+    end    
 
     opts.on("-c CERT_PATH", "--ca-cert CERT_PATH", "Certificate authority PEM file to use") do |arg|
       SyslogShipper::Client.ca_cert = arg
-      tls = true
+      SyslogShipper::Client.with_tls = true
+    end
     end
   end # OptionParser
 
@@ -74,11 +80,12 @@ def main(args)
 
     args.each do |path|
       if path.start_with?("+")
-        SyslogShipper::Client.verbose = true
+        SyslogShipper::Client.raw = true
         path = path[1..-1]
       else
-        SyslogShipper::Client.verbose = false
+        SyslogShipper::Client.raw = false
       end
+
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = globcheck_interval,
                                           exclude = exclude_patterns,
