@@ -80,7 +80,7 @@ def main(args)
     host, port = hostarg.split(":")
     port = 514 if port == nil
 
-    connection = if tls 
+    connection = if SyslogShipper::Client.with_tls
       EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
     else
       EventMachine::connect(host, port) 
