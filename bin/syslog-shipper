@@ -51,7 +51,15 @@ def main(args)
       SyslogShipper::Client.ca_cert = arg
       SyslogShipper::Client.with_tls = true
     end
+
+    opts.on("--tls", "enable TLS support (use with -c to specify a non-system CA)") do |arg|
+      SyslogShipper::Client.with_tls = true
     end
+
+    opts.on("--skip-peer-check", "disable peer checking for TLS connections (not recommended).  You will be prompted otherwise.") do |arg|
+      SyslogShipper::Client.with_tls = true
+      SyslogShipper::Client.bypass_peer_check = true
+    end    
   end # OptionParser
 
   opts.parse!(args)

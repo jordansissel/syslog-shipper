@@ -11,7 +11,7 @@ describe SyslogShipper::Client do
     it 'sends data'
   end
 
-  descibe '#build_message' do
+  describe '#build_message' do
     context 'raw mode' do
       it 'does not modify the message'
     end
