@@ -9,6 +9,7 @@ def main(args)
   exclude_patterns = []
   hostarg = nil
   verbose = false
+  tls = false
 
   opts = OptionParser.new do |opts|
     opts.banner = [
@@ -38,12 +39,27 @@ def main(args)
     end
 
     opts.on("-v", "--verbose", "verbose (outputs each log line as seen)") do |arg|
-      verbose = true
+      SyslogShipper::Client.verbose = true
     end
+
+    opts.on("--ping", "connect and quit (implies -v)") do |arg|
+      SyslogShipper::Client.verbose = true
+      SyslogShipper::Client.ping = true
+    end    
 
     opts.on("-c CERT_PATH", "--ca-cert CERT_PATH", "Certificate authority PEM file to use") do |arg|
       SyslogShipper::Client.ca_cert = arg
+      SyslogShipper::Client.with_tls = true
     end
+
+    opts.on("--tls", "enable TLS support (use with -c to specify a non-system CA)") do |arg|
+      SyslogShipper::Client.with_tls = true
+    end
+
+    opts.on("--skip-peer-check", "disable peer checking for TLS connections (not recommended).  You will be prompted otherwise.") do |arg|
+      SyslogShipper::Client.with_tls = true
+      SyslogShipper::Client.bypass_peer_check = true
+    end    
   end # OptionParser
 
   opts.parse!(args)
@@ -64,23 +80,25 @@ def main(args)
     host, port = hostarg.split(":")
     port = 514 if port == nil
 
-    connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
+    connection = if SyslogShipper::Client.with_tls
+      EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
+    else
+      EventMachine::connect(host, port) 
+    end
 
     args.each do |path|
       if path.start_with?("+")
-        raw = true
+        SyslogShipper::Client.raw = true
         path = path[1..-1]
       else
-        raw = false
+        SyslogShipper::Client.raw = false
       end
+
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = globcheck_interval,
                                           exclude = exclude_patterns,
                                           start_pos = -1,
-                                          connection = connection,
-                                          raw = raw,
-                                          verbose = verbose
-                                          )
+                                          connection = connection)
     end # args.each
   end # EventMachine.run
 end # def main

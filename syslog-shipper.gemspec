@@ -1,5 +1,5 @@
 Gem::Specification.new do |spec|
-  spec.files       = %w( README.md LICENSE EXAMPLES.md History.txt )
+  spec.files       = %w( README LICENSE )
   spec.files       += Dir.glob("lib/**/*")
   spec.files       += Dir.glob("bin/**/*")
   spec.files       += Dir.glob("test/**/*")
