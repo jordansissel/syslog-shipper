@@ -67,7 +67,7 @@ def main(args)
     connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
 
     args.each do |path|
-      if path.start_with?("+")
+      if path =~ /\A\+/
         raw = true
         path = path[1..-1]
       else
