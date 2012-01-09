@@ -1,6 +1,5 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -rubygems
 
-require "rubygems"
 require "optparse"
 require File.expand_path('../../lib/syslog_shipper',  __FILE__)
 require 'trollop'
