@@ -1,6 +1,6 @@
 verbose: true
-server: logs.loggly.com:32018
+server: localhost:12345
 tls: true
-ca_cert: /Users/neilmatatall/Desktop/sf_intermediate.crt
+ca_cert: test_certs/ca.crt
 files:
-  - +/realpractice/rpp_web_app/log/*
+  - somelog
