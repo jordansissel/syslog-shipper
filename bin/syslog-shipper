@@ -41,6 +41,16 @@ def main(args)
 
   puts options if options[:verbose]
   
+  files = ARGV
+
+  if options[:file]
+    config = Hash[YAML::load(open(options[:file])).map { |k, v| [k.to_sym, v] }]
+    options.merge!(config)
+    files += config[:files]
+  end
+
+  Trollop.die "You must supply files to watch" if files.empty?
+
   host, port = options[:server].split(":")
   port = 514 if port == nil
   exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
@@ -53,8 +63,10 @@ def main(args)
   SyslogShipper::Client.ca_cert = options[:ca_cert]    
   SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
   
-  options[:tls] == true if options[:tls] || options[:skip_peer_check] || options[:ca_cert]
+  options[:tls] = true if (options[:tls] || options[:skip_peer_check] || options[:ca_cert])
   SyslogShipper::Client.with_tls = options[:tls]
+
+  puts options if options[:verbose]
 
   EventMachine.run do
     Signal.trap("INT") do
@@ -71,7 +83,6 @@ def main(args)
     end
 
     files.uniq.each do |path|
-      puts path
       if path =~ /\A\+/
         raw = true
         path = path[1..-1]
