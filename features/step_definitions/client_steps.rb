@@ -18,27 +18,27 @@ end
 
 When /^I connect to that endpoint$/ do
   steps %Q{
-    When I run `syslog-shipper --p -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
+    When I run `syslog-shipper --ping -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
 When /^I securely connect to that endpoint$/ do
   file_path = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
   steps %Q{
-    When I run `syslog-shipper --p --ca-cert #{file_path} -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
+    When I run `syslog-shipper --ping --ca-cert #{file_path} -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
 When /^I connect to the insecure endpoint$/ do
   file_path = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
   steps %Q{
-    When I run `syslog-shipper --p --tls -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
+    When I run `syslog-shipper --ping --tls -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
 When /^I connect to that endpoint with and bypass peer checking$/ do
   steps %Q{
-    When I run `syslog-shipper --p --skip-peer-check -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
+    When I run `syslog-shipper --ping --skip-peer-check -s #{@host_name}:#{@port} /Users/neilmatatall/dev/syslog-shipper/log` interactively
   }
 end
 
