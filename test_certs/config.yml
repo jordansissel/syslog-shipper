@@ -1,0 +1,6 @@
+verbose: true
+server: logs.loggly.com:32018
+tls: true
+ca_cert: /Users/neilmatatall/Desktop/sf_intermediate.crt
+files:
+  - +/realpractice/rpp_web_app/log/*
