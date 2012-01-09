@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby -rubygems
 
-require "optparse"
 require File.expand_path('../../lib/syslog_shipper',  __FILE__)
 require 'trollop'
+require 'yaml'
 
 def main(args)
   options = Trollop::options do
@@ -20,15 +20,26 @@ def main(args)
             "for new files", :default => 5, :short => :i
     opt :exclude, "A pattern to ignore. Wildcard/globs accepted." \
             " Can be specified multiple times", :short => :x, :type => :strings       
-    opt :server, "What syslog server to ship to (uses TCP)", :type => :string, :required => true
+    opt :server, "What syslog server to ship to (uses TCP)", :type => :string
     opt :verbose, "Verbose mode"
     opt :ping, "Try to connect and quit immediately after"
     opt :ca_cert, "Custom certificate used to verify TLS certificates (implies --tls)", :type => :string
     opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended, implied --tls)"
     opt :tls, "Connect via tls"
+    opt :file, "YAML config file", :type => :string
   end
 
-  Trollop.die "You must supply files to watch" if ARGV.length == 0
+  files = ARGV
+
+  if options[:file]
+    config = Hash[YAML::load(open(options[:file])).map { |k, v| [k.to_sym, v] }]
+    options.merge!(config)
+    files += config[:files]
+  end
+
+  Trollop.die "You must supply files to watch" if files.empty?
+
+  puts options if options[:verbose]
   
   host, port = options[:server].split(":")
   port = 514 if port == nil
@@ -59,7 +70,8 @@ def main(args)
       EventMachine::connect(host, port) 
     end
 
-    ARGV.each do |path|
+    files.uniq.each do |path|
+      puts path
       if path =~ /\A\+/
         raw = true
         path = path[1..-1]
