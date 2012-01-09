@@ -17,5 +17,6 @@ Gem::Specification.new do |spec|
   spec.email = "jordan@loggly.com"
   spec.homepage = "https://github.com/jordansissel/syslog-shipper"
   spec.add_dependency "eventmachine-tail"
+  spec.add_dependency "trollop"
 end
 

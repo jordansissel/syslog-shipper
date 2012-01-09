@@ -1,6 +1,8 @@
 source :rubygems
 
 gem "jruby-openssl", :platform => :jruby
+gem "eventmachine-tail"
+gem "trollop"
 
 group :development, :test do
   gem 'rake'
