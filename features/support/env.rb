@@ -1,0 +1,1 @@
+require File.expand_path('../../../lib/syslog_shipper',  __FILE__)

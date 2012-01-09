@@ -23,16 +23,25 @@ def main(args)
     opt :server, "What syslog server to ship to (uses TCP)", :type => :string, :required => true
     opt :verbose, "Verbose mode"
     opt :ca_cert, "Custom certificate used to verify TLS certificates", :type => :string
+    opt :ping, "Try to connect and quit immediately after"
+    opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended)"
+    opt :tls, "Connect via tls"
   end
 
-  Trollop.die "You must supply files to watch" if ARGV.length ==0
+  Trollop.die "You must supply files to watch" if ARGV.length == 0
   
   host, port = options[:server].split(":")
   port = 514 if port == nil
-
   exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
 
+  # debug options
+  SyslogShipper::Client.ping = options[:ping]
+  SyslogShipper::Client.verbose = options[:verbose]
+
+  # TLS options
   SyslogShipper::Client.ca_cert = options[:ca_cert]    
+  SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
+  SyslogShipper::Client.with_tls = options[:tls] || options[:skip_peer_check] || options[:ca_cert]
 
   EventMachine.run do
     Signal.trap("INT") do
@@ -42,23 +51,26 @@ def main(args)
       end
     end
 
-    connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
+    connection = if options[:tls]  
+      EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
+    else
+      EventMachine::connect(host, port) 
+    end
 
-    args.each do |path|
+    ARGV.each do |path|
       if path =~ /\A\+/
         raw = true
         path = path[1..-1]
       else
         raw = false
       end
+
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = options[:check_interval],
                                           exclude = exluded_patterns,
                                           start_pos = -1,
                                           connection = connection,
-                                          raw = raw,
-                                          verbose = options[:verbose]
-                                          )
+                                          raw = raw)
     end # args.each
   end # EventMachine.run
 end # def main
