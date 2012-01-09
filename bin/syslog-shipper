@@ -3,55 +3,37 @@
 require "rubygems"
 require "optparse"
 require File.expand_path('../../lib/syslog_shipper',  __FILE__)
+require 'trollop'
 
 def main(args)
-  globcheck_interval = 5
-  exclude_patterns = []
-  hostarg = nil
-  verbose = false
+  options = Trollop::options do
+    version "syslog-shipper 1.0"
+    banner <<-EOS
+      Usage: #{$0} [options] -s HOST:PORT <path_or_glob> [path_or_glob2] [...]
+      If a path begins with '+' each line is sent unmodified to the syslog server.
+      Otherwise, this tool will prefix each line read from the file with a syslog
+      header.
+        
+      For example: #{$0} -s somehost:514 +/var/log/messages /var/log/apache2/access.syslog
+    EOS
 
-  opts = OptionParser.new do |opts|
-    opts.banner = [
-      "Usage: #{$0} [options] -s HOST:PORT <path_or_glob> [path_or_glob2] [...]",
-      "  If a path begins with '+' each line is sent unmodified to the syslog server.",
-      "  Otherwise, this tool will prefix each line read from the file with a syslog",
-      "  header. ",
-      "",
-      "  For example: #{$0} -s somehost:514 +/var/log/messages /var/log/apache2/access.log",
-    ].join("\n")
-
-    opts.on("-i SECONDS", "--check-interval SECONDS",
-            "How frequently, in seconds, to check the glob patterns" \
-            "for new files") do |x|
-      globcheck_interval = x.to_f
-    end # -i SECONDS
-
-    opts.on("-x EXCLUDE", "--exclude EXCLUDE",
-            "A pattern to ignore. Wildcard/globs accepted." \
-            " Can be specified multiple times") do |pattern|
-      exclude_patterns << pattern_to_regexp(pattern)
-    end
-
-    opts.on("-s HOST:PORT", "--server HOST:PORT",
-            "What syslog server to ship to (uses TCP)") do |arg|
-      hostarg = arg
-    end
-
-    opts.on("-v", "--verbose", "verbose (outputs each log line as seen)") do |arg|
-      verbose = true
-    end
-
-    opts.on("-c CERT_PATH", "--ca-cert CERT_PATH", "Certificate authority PEM file to use") do |arg|
-      SyslogShipper::Client.ca_cert = arg
-    end
-  end # OptionParser
-
-  opts.parse!(args)
-
-  if args.length == 0 or hostarg == nil
-    puts opts.banner
-    return 1
+    opt :check_interval, "How frequently, in seconds, to check the glob patterns" \
+            "for new files", :default => 5, :short => :i
+    opt :exclude, "A pattern to ignore. Wildcard/globs accepted." \
+            " Can be specified multiple times", :short => :x, :type => :strings       
+    opt :server, "What syslog server to ship to (uses TCP)", :type => :string, :required => true
+    opt :verbose, "Verbose mode"
+    opt :ca_cert, "Custom certificate used to verify TLS certificates", :type => :string
   end
+
+  Trollop.die "You must supply files to watch" if ARGV.length ==0
+  
+  host, port = options[:server].split(":")
+  port = 514 if port == nil
+
+  exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
+
+  SyslogShipper::Client.ca_cert = options[:ca_cert]    
 
   EventMachine.run do
     Signal.trap("INT") do
@@ -61,12 +43,9 @@ def main(args)
       end
     end
 
-    host, port = hostarg.split(":")
-    port = 514 if port == nil
-
     connection = EventMachine::connect(host, port, SyslogShipper::TlsWrapper)
 
-    args.each do |path|
+    ARGV.each do |path|
       if path.start_with?("+")
         raw = true
         path = path[1..-1]
@@ -74,12 +53,12 @@ def main(args)
         raw = false
       end
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
-                                          interval = globcheck_interval,
-                                          exclude = exclude_patterns,
+                                          interval = options[:check_interval],
+                                          exclude = exluded_patterns,
                                           start_pos = -1,
                                           connection = connection,
                                           raw = raw,
-                                          verbose = verbose
+                                          verbose = options[:verbose]
                                           )
     end # args.each
   end # EventMachine.run
