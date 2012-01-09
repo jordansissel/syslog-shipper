@@ -23,16 +23,22 @@ def main(args)
     opt :server, "What syslog server to ship to (uses TCP)", :type => :string, :required => true
     opt :verbose, "Verbose mode"
     opt :ca_cert, "Custom certificate used to verify TLS certificates", :type => :string
+    opt :ping, "Try to connect and quit immediately after"
+    opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended)"
+    opt :tls, "Connect via tls"
   end
 
   Trollop.die "You must supply files to watch" if ARGV.length ==0
   
   host, port = options[:server].split(":")
   port = 514 if port == nil
-
   exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
 
   SyslogShipper::Client.ca_cert = options[:ca_cert]    
+  SyslogShipper::Client.with_tls = options[:tls]
+  SyslogShipper::Client.ping = options[:ping]
+  SyslogShipper::Client.verbose = options[:verbose]
+  SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
 
   EventMachine.run do
     Signal.trap("INT") do
@@ -51,19 +57,17 @@ def main(args)
     ARGV.each do |path|
       if path =~ /\A\+/
         raw = true
-        SyslogShipper::Client.verbose = true
         path = path[1..-1]
       else
-        SyslogShipper::Client.verbose = false
+        raw = false
       end
+
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
                                           interval = options[:check_interval],
                                           exclude = exluded_patterns,
                                           start_pos = -1,
                                           connection = connection,
-                                          raw = raw,
-                                          verbose = options[:verbose]
-                                          )
+                                          raw = raw)
     end # args.each
   end # EventMachine.run
 end # def main
