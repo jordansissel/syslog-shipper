@@ -22,9 +22,9 @@ def main(args)
             " Can be specified multiple times", :short => :x, :type => :strings       
     opt :server, "What syslog server to ship to (uses TCP)", :type => :string, :required => true
     opt :verbose, "Verbose mode"
-    opt :ca_cert, "Custom certificate used to verify TLS certificates", :type => :string
     opt :ping, "Try to connect and quit immediately after"
-    opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended)"
+    opt :ca_cert, "Custom certificate used to verify TLS certificates (implies --tls)", :type => :string
+    opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended, implied --tls)"
     opt :tls, "Connect via tls"
   end
 
@@ -41,7 +41,9 @@ def main(args)
   # TLS options
   SyslogShipper::Client.ca_cert = options[:ca_cert]    
   SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
-  SyslogShipper::Client.with_tls = options[:tls] || options[:skip_peer_check] || options[:ca_cert]
+  
+  options[:tls] == true if options[:tls] || options[:skip_peer_check] || options[:ca_cert]
+  SyslogShipper::Client.with_tls = options[:tls]
 
   EventMachine.run do
     Signal.trap("INT") do
