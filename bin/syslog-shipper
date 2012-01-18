@@ -57,18 +57,18 @@ def main(args)
       end
     end
 
-    connection = if options[:tls]
-      EventMachine::connect(host, port, SyslogShipper::TlsWrapper, options[:ca_cert], options[:tls], options[:skip_peer_check], options[:verbose]) 
-    else
-      EventMachine::connect(host, port)
-    end
-
     files.uniq.each do |path|
       if path =~ /\A\+/
         raw = true
         path = path[1..-1]
       else
         raw = false
+      end
+
+      connection = if options[:tls]
+        EventMachine::connect(host, port, SyslogShipper::TlsWrapper, options[:ca_cert], options[:tls], options[:skip_peer_check], options[:verbose]) 
+      else
+        EventMachine::connect(host, port)
       end
 
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
