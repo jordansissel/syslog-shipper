@@ -26,30 +26,23 @@ def main(args)
     opt :ca_cert, "Custom certificate used to verify TLS certificates (implies --tls)", :type => :string
     opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended, implied --tls)"
     opt :tls, "Connect via tls"
-    opt :file, "YAML config file", :type => :string
+    opt :config_file, "YAML config file", :type => :string, :short => :f
   end
 
-  files = ARGV
+  files = ARGV || []
 
-  if options[:file]
-    config = Hash[YAML::load(open(options[:file])).map { |k, v| [k.to_sym, v] }]
-    options.merge!(config)
-    files += config[:files]
+  if options[:config_file]
+    config = Hash[YAML::load(open(options[:config_file])).map { |k, v| [k.to_sym, v] }]
+    options.merge!(config) {|k, right_v, left_v| right_v.nil? ? left_v : right_v }
+    files += options[:files]
   end
-
-  Trollop.die "You must supply files to watch" if files.empty?
 
   puts options if options[:verbose]
-  
-  files = ARGV
-
-  if options[:file]
-    config = Hash[YAML::load(open(options[:file])).map { |k, v| [k.to_sym, v] }]
-    options.merge!(config)
-    files += config[:files]
-  end
 
   Trollop.die "You must supply files to watch" if files.empty?
+  Trollop.die "You must supply the host:port to connect to" if options.server.nil?
+
+  puts options
 
   host, port = options[:server].split(":")
   port = 514 if port == nil
