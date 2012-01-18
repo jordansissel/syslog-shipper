@@ -2,31 +2,25 @@ require "socket"
 
 module SyslogShipper
   class Client < EventMachine::FileTail
-    class << self
-      attr_accessor :ca_cert
-      attr_accessor :with_tls
-      attr_accessor :bypass_peer_check
-      attr_accessor :verbose
-      attr_accessor :ping
-    end
-
-    def initialize path, startpos=-1, connection=nil, raw=false
-      super path, startpos
+    def initialize path, options = {:startpos => -1}
+      super path, options[:startpos]
       @buffer = BufferedTokenizer.new
       @hostname = Socket.gethostname
-      @connection = connection
-      @raw = raw
+      @connection = options[:connection]
+      @raw = options[:raw]
+      @ping = options[:ping]
+      @verbose = options[:verbose]
     end
 
     def receive_data(data)
       @buffer.extract(data).each do |line|
-        if SyslogShipper::Client.ping
+        if @ping
           puts 'connection successful'
           exit
         end
         
         if message = build_message(line)
-          puts message if SyslogShipper::Client.verbose
+          puts message if @verbose
           send_data message
         end
       end 
@@ -39,6 +33,7 @@ module SyslogShipper
     end
 
     def build_message line
+      # don't send anything if there is no data
       return if line && line.gsub(/\s/, '').empty?
 
       if @raw

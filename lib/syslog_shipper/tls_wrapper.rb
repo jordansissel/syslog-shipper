@@ -6,10 +6,17 @@ module SyslogShipper::TlsWrapper
     attr_accessor :verified
   end
 
+  def initialize(ca_cert, with_tls, bypass_peer_check = false, verbose = false)
+    @ca_cert = ca_cert
+    @with_tls = true
+    @bypass_peer_check = bypass_peer_check
+    @verbose = verbose
+  end
+
   def post_init
     puts 'post init'
     @@semaphore ||= Mutex.new
-    start_tls :verify_peer => SyslogShipper::Client.with_tls
+    start_tls :verify_peer => @with_tls
   end
 
   def connection_completed
@@ -20,12 +27,12 @@ module SyslogShipper::TlsWrapper
     puts 'verifying peer' 
     @@semaphore.synchronize do
       unless defined?(@@verified)
-        return true if SyslogShipper::Client.bypass_peer_check
+        return true if @bypass_peer_check
 
         server_cert = OpenSSL::X509::Certificate.new cert
         verified = false
 
-        if SyslogShipper::Client.ca_cert
+        if @ca_cert
           ca_cert = read_ca_cert
           verified = server_cert.verify(ca_cert.public_key)
         end
@@ -41,7 +48,7 @@ module SyslogShipper::TlsWrapper
         
         @@verified = verified
 
-        puts 'verified peer' if SyslogShipper::Client.verbose
+        puts 'verified peer' if @verbose
       end
     end
 
@@ -49,7 +56,7 @@ module SyslogShipper::TlsWrapper
   end
 
   def ssl_handshake_completed
-    puts 'ssl handshake completed' if SyslogShipper::Client.verbose
+    puts 'ssl handshake completed' if @verbose
   end
 
   def unbind
@@ -60,6 +67,6 @@ module SyslogShipper::TlsWrapper
   private 
 
   def read_ca_cert
-    OpenSSL::X509::Certificate.new(File.read(SyslogShipper::Client.ca_cert))
+    OpenSSL::X509::Certificate.new(File.read(@ca_cert))
   end
 end

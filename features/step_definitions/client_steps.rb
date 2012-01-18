@@ -6,12 +6,9 @@ end
 Given /^I have a valid TLS endpoint$/ do
   @port = 12345
   @host_name = 'localhost'
-  SyslogShipper::Client.with_tls = true
-  SyslogShipper::Client.ca_cert = File.expand_path(File.dirname(__FILE__) + '../../../test_certs/ca.crt')
 end
 
 Given /^I have an invalid TLS endpoint$/ do
-  SyslogShipper::Client.with_tls = true
   @port = 12345
   @host_name = 'localhost'
 end

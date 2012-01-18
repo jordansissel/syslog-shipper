@@ -33,31 +33,19 @@ def main(args)
 
   if options[:config_file]
     config = Hash[YAML::load(open(options[:config_file])).map { |k, v| [k.to_sym, v] }]
+    # prefer command line values, but take them from the config file
     options.merge!(config) {|k, right_v, left_v| right_v.nil? ? left_v : right_v }
     files += options[:files]
   end
 
-  puts options if options[:verbose]
-
   Trollop.die "You must supply files to watch" if files.empty?
   Trollop.die "You must supply the host:port to connect to" if options.server.nil?
-
-  puts options
 
   host, port = options[:server].split(":")
   port = 514 if port == nil
   exluded_patterns = options[:exclude] ? options[:exclude].map{|glob| pattern_to_regexp(glob)} : []
 
-  # debug options
-  SyslogShipper::Client.ping = options[:ping]
-  SyslogShipper::Client.verbose = options[:verbose]
-
-  # TLS options
-  SyslogShipper::Client.ca_cert = options[:ca_cert]    
-  SyslogShipper::Client.bypass_peer_check = options[:skip_peer_check]
-  
   options[:tls] = true if (options[:tls] || options[:skip_peer_check] || options[:ca_cert])
-  SyslogShipper::Client.with_tls = options[:tls]
 
   puts options if options[:verbose]
 
@@ -69,10 +57,10 @@ def main(args)
       end
     end
 
-    connection = if options[:tls]  
-      EventMachine::connect(host, port, SyslogShipper::TlsWrapper) 
+    connection = if options[:tls]
+      EventMachine::connect(host, port, SyslogShipper::TlsWrapper, options[:ca_cert], options[:tls], options[:skip_peer_check], options[:verbose]) 
     else
-      EventMachine::connect(host, port) 
+      EventMachine::connect(host, port)
     end
 
     files.uniq.each do |path|
@@ -84,11 +72,13 @@ def main(args)
       end
 
       EventMachine::FileGlobWatchTail.new(path, SyslogShipper::Client,
-                                          interval = options[:check_interval],
+                                          options[:check_interval],
                                           exclude = exluded_patterns,
-                                          start_pos = -1,
-                                          connection = connection,
-                                          raw = raw)
+                                          {:startpos => -1,
+                                          :connection => connection,
+                                          :raw => raw,
+                                          :ping => options[:ping],
+                                          :verbose => options[:verbose]})
     end # args.each
   end # EventMachine.run
 end # def main
