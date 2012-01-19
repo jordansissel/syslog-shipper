@@ -58,13 +58,13 @@ DEPENDENCIES
   cucumber
   eventmachine
   eventmachine-tail
-  growl
+  growl (~> 1.0.3)
   guard
   guard-cucumber
   guard-rspec
   guard-test
   jruby-openssl
   rake
-  rb-fsevent
+  rb-fsevent (>= 0.4.0)
   rspec
   trollop

@@ -6,7 +6,7 @@ module SyslogShipper::TlsWrapper
     attr_accessor :verified
   end
 
-  def initialize(ca_cert, with_tls, bypass_peer_check = false, verbose = false)
+  def initialize(ca_cert = nil, with_tls = false, bypass_peer_check = false, verbose = false)
     @ca_cert = ca_cert
     @with_tls = true
     @bypass_peer_check = bypass_peer_check
