@@ -14,17 +14,17 @@ module SyslogShipper::TlsWrapper
   end
 
   def post_init
-    puts 'post init'
+    puts 'post init' if @verbose
     
     start_tls :verify_peer => @with_tls
   end
 
   def connection_completed
-    puts 'connection completed'
+    puts 'connection completed' if @verbose
   end
 
   def ssl_verify_peer cert
-    puts 'verifying peer' 
+    puts 'verifying peer' if @verbose
     unless defined?(@@verified)
       return true if @bypass_peer_check
 
@@ -58,8 +58,7 @@ module SyslogShipper::TlsWrapper
   end
 
   def unbind
-    exit(1)
-    puts 'connection unbound!'
+    puts 'connection unbound!' if @verbose
   end
 
   private 
