@@ -40,7 +40,7 @@ module SyslogShipper::TlsWrapper
         puts server_cert.inspect
         print "The server certificate is not recognized, would you still like to connect? (Y/N) "
         answer = STDIN.gets.chomp
-        unless answer =~ /y|yes/i
+        unless ['y', 'yes'].include?(answer.downcase)
           raise OpenSSL::X509::CertificateError.new("Couldn't verify peer")
         end
       end
