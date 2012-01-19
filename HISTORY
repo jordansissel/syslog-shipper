@@ -1,0 +1,8 @@
+1.1
+
+Added TLS support
+  Can supply custom CA cert, bypass peer checking, or accept an unknown certificate
+Ping mode
+  When used with verbose, helps debug TLS issues
+Config file
+  Use -f to supply a YAML config file that maps to the command line flags

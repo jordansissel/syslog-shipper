@@ -1,9 +1,21 @@
 Ship logs to a syslog server
 ----------------------------
 
-Usage: bin/syslog-shipper [options] -s HOST:PORT <path_or_glob> [path_or_glob2] [...]
-  If a path begins with '+' each line is sent unmodified to the syslog server.
-  Otherwise, this tool will prefix each line read from the file with a syslog
-  header. 
-
-  For example: syslog-shipper -s somehost:514 +/var/log/messages /var/log/apache2/access.log
+[syslog-shipper (master *+$)]$ bin/syslog-shipper -h
+      Usage: bin/syslog-shipper [options] -s HOST:PORT <path_or_glob> [path_or_glob2] [...]
+      If a path begins with '+' each line is sent unmodified to the syslog server.
+      Otherwise, this tool will prefix each line read from the file with a syslog
+      header.
+        
+      For example: bin/syslog-shipper -s somehost:514 +/var/log/messages /var/log/apache2/access.syslog
+  --check-interval, -i <i>:   How frequently, in seconds, to check the glob patternsfor new files (default: 5)
+        --exclude, -x <s+>:   A pattern to ignore. Wildcard/globs accepted. Can be specified multiple times
+          --server, -s <s>:   What syslog server to ship to (uses TCP)
+             --verbose, -v:   Verbose mode
+                --ping, -p:   Try to connect and quit immediately after
+         --ca-cert, -c <s>:   Custom certificate used to verify TLS certificates (implies --tls)
+     --skip-peer-check, -k:   When connecting with TLS, do not prompt the user to verify the peer (not recommended, implies --tls)
+                 --tls, -t:   Connect via tls
+     --config-file, -f <s>:   YAML config file (command line options override values in this file)
+             --version, -e:   Print version and exit
+                --help, -h:   Show this message

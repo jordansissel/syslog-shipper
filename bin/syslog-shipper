@@ -19,14 +19,14 @@ def main(args)
     opt :check_interval, "How frequently, in seconds, to check the glob patterns" \
             "for new files", :default => 5, :short => :i
     opt :exclude, "A pattern to ignore. Wildcard/globs accepted." \
-            " Can be specified multiple times", :short => :x, :type => :strings       
+            " Can be specified multiple times", :short => :x, :type => :strings, :multi => true       
     opt :server, "What syslog server to ship to (uses TCP)", :type => :string
     opt :verbose, "Verbose mode"
     opt :ping, "Try to connect and quit immediately after"
     opt :ca_cert, "Custom certificate used to verify TLS certificates (implies --tls)", :type => :string
-    opt :skip_peer_check, "When connecting with TLS, do not verify the peer (not recommended, implied --tls)"
+    opt :skip_peer_check, "When connecting with TLS, do not prompt the user to verify the peer (not recommended, implies --tls)"
     opt :tls, "Connect via tls"
-    opt :config_file, "YAML config file", :type => :string, :short => :f
+    opt :config_file, "YAML config file (command line options override values in this file)", :type => :string, :short => :f
   end
 
   files = ARGV || []
