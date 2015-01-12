@@ -1,0 +1,6 @@
+verbose: true
+server: localhost:12345
+tls: true
+ca_cert: test_certs/ca.crt
+files:
+  - somelog
